@@ -1,62 +1,76 @@
 import os
 
-images = ["jpg","JPG", "PNG", "png", "gif", "GIF", "svg", "SVG"]
-documents = ["doc","docx","pdf", "DOC","DOCX","PDF"]
-xls = ["csv","xls","xlsx","CSV","XLS","XLSX"]
-videos = ["mp4","MP4"]
-musica = ["mp3","mp3"]
 
-list_de_tipos = [images,documents, xls, videos, musica]
+
+#reading the configuration
+config_file = open("./sorter.config", "r")
+config_data = config_file.readlines()
+folders = config_data[0].replace('\n','').split(" ")
+folders_str = config_data[0]
+print(f"loaded folders: {folders}")
+extentions = [x.replace('\n','').split(" ") for x in config_data[1:]]
+print(f"extensions are : {extentions}") 
+extension_dic = {}
+basePath = "."
+
+for i in range(len(extentions)):
+    for j in range(len(extentions[i])):
+        extension_dic[extentions[i][j]] = folders[i]
+
+
 
 #function for creating files for testing
 def create_test_files():
-    for i in range(len(list_de_tipos)):
-        for j in range(len(list_de_tipos[i])):
-            filename = str.format("{nombre}.{extension}", nombre = "archivo", extension = list_de_tipos[i][j])
+    for i in range(len(extentions)):
+        for j in range(len(extentions[i])):
+            filename = str.format("{nombre}.{extension}", nombre = "archivo", extension = extentions[i][j])
             
             file = open(filename,"w")
             file.write("something")
             file.close()
 
 
-#funciona perfecto
+#Folder creation method
 def create_folders():
-    os.system("md images videos musica xls documents other")    
+    try:
+        command = f" md  {basePath}{os.sep}{folders_str}"
+        os.system(command) 
+    except:
+        print("Directory was already created")
 
 def moveDir(foldername, filename):
-    comand = str.format('Move "{file}" {folder}"',file = filename, folder = foldername)
-    os.system(comand)
-    
-    #print(comand)
+    command = f"Move {filename} {foldername}"
+    os.system(command)
 
 
+#Get Files Method
 def get_dir_list():
-    items = os.listdir()
-    return items
+    return os.listdir()
+
+
+
+#sort files by configuration directives
 def sort():
     items = get_dir_list()
     for i in range(len(items)):
         if os.path.isfile(items[i]):
-            aux_list = items[i].split(".")
-            if aux_list[1] in images:
-                moveDir("images",items[i])
-            elif aux_list[1] in documents:
-               moveDir("documents", items[i])
-            elif aux_list[1] in videos:
-                moveDir("videos", items[i])
-            elif aux_list[1] in musica:
-                moveDir("musica", items[i])
-            elif aux_list[1] in xls:
-                moveDir("xls", items[i])
-            #elif aux_list[1] != "ink" and items[i] != "sorter.py":
-            #    moveDir("other", items[i])
+            item_extention = items[i].split(".")[1]
+            if item_extention in extension_dic:
+                destination_folder = f"{basePath}{os.sep}{extension_dic[item_extention]}"
+                try:
+                    print(destination_folder)
+                    moveDir(f"{destination_folder}",items[i])
+                except:
+                    print("Error transportando los archivos")
 
 
+#Main process
 def main():
+    create_test_files()
     create_folders()
     sort()
 
 #create_test_files()
 
-#main()
+#excecution
 main()
